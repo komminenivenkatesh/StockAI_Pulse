@@ -1,0 +1,36 @@
+# Environments & Packages
+.venv/
+backend/.venv/
+venv/
+env/
+node_modules/
+frontend/node_modules/
+dist/
+build/
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# ML Artifacts & Data
+ml_artifacts/
+backend/ml_artifacts/
+data/raw/
+data/processed/
+
+# Environment files & Secrets
+.env
+.env.local
+.env.*.local
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+cloudflared.exe
+ngrok.exe

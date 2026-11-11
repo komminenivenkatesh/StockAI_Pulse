@@ -1,0 +1,13 @@
+{
+  "name": "stockai-pulse",
+  "version": "1.0.0",
+  "description": "StockAI Pulse - Quantitative Trading & Sentiment Intelligence Platform",
+  "scripts": {
+    "start": "python run.py",
+    "docker": "docker compose up --build",
+    "dev:backend": "cd backend && uvicorn app.main:app --reload --port 8000",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build",
+    "test": "cd backend && pytest tests/ -v"
+  }
+}
