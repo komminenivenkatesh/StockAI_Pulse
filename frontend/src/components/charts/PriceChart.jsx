@@ -173,6 +173,7 @@ const PriceChart = ({ ticker, timeframe }) => {
         const { period, interval } = getTimeframeParams(timeframe);
         const res = await api.fetchMarketData(ticker, period, interval, true);
         if (res && res.data && res.data.ohlcv && res.data.ohlcv.length > 0 && isMounted) {
+          setError(null);
           const isIntraday = interval.includes('m') || interval.includes('h');
           
           const candleData = res.data.ohlcv.map(b => ({
@@ -230,7 +231,20 @@ const PriceChart = ({ ticker, timeframe }) => {
           ema12.setData([]);
           setLastPrice(null);
           setPriceChange(null);
-          setError(`No price data returned for "${ticker}".`);
+          if (!res) {
+            setError({
+              type: 'connection',
+              title: 'Connecting to Market Engine',
+              message: 'Connecting to live market data feed... Retrying automatically in 2s.',
+            });
+            setTimeout(() => { if (isMounted) loadChartData(); }, 2000);
+          } else {
+            setError({
+              type: 'not_found',
+              title: 'Symbol Not Found',
+              message: `No price data returned for "${ticker}" on selected timeframe.`,
+            });
+          }
         }
       } catch (e) {
         console.warn('API fetchMarketData failed:', e);
@@ -242,7 +256,11 @@ const PriceChart = ({ ticker, timeframe }) => {
           ema12.setData([]);
           setLastPrice(null);
           setPriceChange(null);
-          setError(`Could not find symbol "${ticker}". Please verify the ticker or exchange.`);
+          setError({
+            type: 'not_found',
+            title: 'Symbol Lookup Error',
+            message: `Could not retrieve data for "${ticker}". Please verify the symbol or exchange.`,
+          });
         }
       }
     }
@@ -396,14 +414,32 @@ const PriceChart = ({ ticker, timeframe }) => {
         <div ref={chartContainerRef} className="w-full h-full" />
         {error && (
           <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
-            <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mb-3">
-              <AlertCircle className="w-6 h-6 text-red-400" />
-            </div>
-            <h3 className="text-white font-semibold text-base mb-1">Symbol Not Found</h3>
-            <p className="text-slate-400 text-sm max-w-md mb-4">{error}</p>
-            <div className="text-xs text-slate-500 bg-slate-800/80 border border-slate-700 rounded-lg px-3 py-2">
-              Try searching a valid ticker like: <span className="text-emerald-400 font-mono">RELIANCE</span>, <span className="text-emerald-400 font-mono">TCS</span>, <span className="text-emerald-400 font-mono">INFY</span>, <span className="text-emerald-400 font-mono">AAPL</span>, or <span className="text-emerald-400 font-mono">BTC/USDT</span>
-            </div>
+            {error.type === 'connection' ? (
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mb-3">
+                  <RefreshCw className="w-6 h-6 text-emerald-400 animate-spin" />
+                </div>
+                <h3 className="text-white font-semibold text-base mb-1">{error.title}</h3>
+                <p className="text-slate-400 text-sm max-w-md mb-4">{error.message}</p>
+                <button
+                  onClick={loadChartData}
+                  className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  Retry Now
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mb-3">
+                  <AlertCircle className="w-6 h-6 text-red-400" />
+                </div>
+                <h3 className="text-white font-semibold text-base mb-1">{error.title || 'Symbol Not Found'}</h3>
+                <p className="text-slate-400 text-sm max-w-md mb-4">{error.message || error}</p>
+                <div className="text-xs text-slate-500 bg-slate-800/80 border border-slate-700 rounded-lg px-3 py-2">
+                  Try searching a valid ticker like: <span className="text-emerald-400 font-mono">RELIANCE</span>, <span className="text-emerald-400 font-mono">TCS</span>, <span className="text-emerald-400 font-mono">INFY</span>, <span className="text-emerald-400 font-mono">AAPL</span>, or <span className="text-emerald-400 font-mono">BTC/USDT</span>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
