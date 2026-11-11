@@ -1,22 +1,47 @@
 @echo off
+setlocal enabledelayedexpansion
 set "PATH=%LOCALAPPDATA%\Programs\MinGit\cmd;%PATH%"
-echo ===================================================
-echo   StockAI Pulse (AlgoScan) - Push to GitHub
-echo ===================================================
+
+echo ===================================================================
+echo   StockAI Pulse (AlgoScan) - Push to GitHub (Private Repo)
+echo ===================================================================
 echo.
-echo Pushing commit to: https://github.com/komminenivenkatesh/StockAI_Pulse.git
+echo Target Repository: https://github.com/komminenivenkatesh/StockAI_Pulse (Private)
 echo.
-echo If prompted, enter your GitHub Username and Personal Access Token (or password).
+echo NOTE: Since August 2021, GitHub requires a Personal Access Token (PAT)
+echo       instead of your account password to push code.
 echo.
-git push -u origin main
+echo If you don't have a token yet:
+echo 1. Open: https://github.com/settings/tokens/new
+echo 2. Give it a Note (e.g. StockAI)
+echo 3. Check the "repo" scope (Full control of private repositories)
+echo 4. Click "Generate token" and copy it (starts with ghp_...)
 echo.
-if %ERRORLEVEL% equ 0 (
-    echo [SUCCESS] Code and description pushed to GitHub successfully!
-) else (
-    echo [NOTE] If you saw 404 or authentication failed:
-    echo 1. Create the repository at https://github.com/new with name: StockAI_Pulse
-    echo 2. Generate a Personal Access Token at https://github.com/settings/tokens (repo scope)
-    echo 3. Run this file again.
+echo ===================================================================
+set /p "GITHUB_TOKEN=Paste your GitHub Personal Access Token: "
+
+if "%GITHUB_TOKEN%"=="" (
+    echo [ERROR] Token cannot be empty. Please run this file again and paste your token.
+    pause
+    exit /b 1
 )
+
+echo.
+echo Pushing latest code and description to main branch...
+git push https://komminenivenkatesh:%GITHUB_TOKEN%@github.com/komminenivenkatesh/StockAI_Pulse.git main --force
+
+if %ERRORLEVEL% equ 0 (
+    echo.
+    echo ===================================================================
+    echo [SUCCESS] StockAI Pulse has been pushed to GitHub successfully!
+    echo Refresh https://github.com/komminenivenkatesh/StockAI_Pulse to see it.
+    echo ===================================================================
+) else (
+    echo.
+    echo [FAILED] Push failed. Please check that:
+    echo 1. Your token has the 'repo' scope checked.
+    echo 2. Your token has not expired.
+)
+
 echo.
 pause
